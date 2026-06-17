@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TagSense AI — Analytics</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/style.css">
+    <!-- Authentication Lock -->
+    <script>
+        if (sessionStorage.getItem("tagsense_token") !== "authenticated") {
+            window.location.href = "/login";
+        }
+    </script>
+    <!-- Theme Gating -->
+    <script>
+        if (localStorage.getItem("tagsense_theme") === "light") {
+            document.documentElement.classList.add("light-theme");
+        }
+    </script>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">TS</div>
+                <div class="brand-name">TagSense <span class="brand-tag">AI</span></div>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item"><a href="/">Dashboard</a></li>
+                <li class="menu-item"><a href="/upload">Content Upload</a></li>
+                <li class="menu-item"><a href="/classification">Classification Center</a></li>
+                <li class="menu-item"><a href="/moderation">Moderation Center</a></li>
+                <li class="menu-item active"><a href="/analytics">Analytics</a></li>
+                <li class="menu-item"><a href="/architecture">Architecture</a></li>
+                <li class="menu-item"><a href="/admin">Admin Console</a></li>
+                <li class="menu-item" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+                    <a href="#" onclick="sessionStorage.removeItem('tagsense_token'); window.location.href='/login';">Log Out</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>CPU Cluster</span>
+                        <span id="cpu-label-val">24%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpu-fill" style="width: 24%;"></div>
+                    </div>
+                </div>
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>GPU Cluster</span>
+                        <span>56%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 56%;"></div>
+                    </div>
+                </div>
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>Redis Quota</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Body -->
+        <div class="app-main">
+            <!-- Top Navbar -->
+            <nav class="navbar">
+                <div class="nav-left">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search content ID, tags, or status...">
+                    </div>
+                    <select class="tenant-selector">
+                        <option>Meta Global Edge</option>
+                        <option>YouTube Ingress Partner</option>
+                        <option>ITM University Admin</option>
+                    </select>
+                </div>
+                
+                <div class="nav-right">
+                    <div class="status-indicator">
+                        <div class="dot-pulse"></div>
+                        <span>Ingest active</span>
+                    </div>
+                    <button class="icon-button" id="theme-toggle" title="Toggle Light/Dark Theme">
+                        🌓
+                    </button>
+                    <button class="icon-button">
+                        🔔
+                        <span class="alert-dot"></span>
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar"></div>
+                        <span>Admin Console</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Page Content -->
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h2>Analytics Center</h2>
+                        <p>Aggregated model performance graphs, drift analytics, and cluster load ratios.</p>
+                    </div>
+                </div>
+
+                <!-- Model Drift & Training Info Cards -->
+                <section class="metrics-grid">
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header">
+                            <span>Concept Model Drift</span>
+                            <span class="status-badge sb-success">NO DRIFT</span>
+                        </div>
+                        <div class="metric-value">98.4%</div>
+                        <div class="metric-footer"><span class="text-secondary">Distribution similarity score</span></div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header">
+                            <span>NLP Model Accuracy</span>
+                            <span class="trend-up">▲ 0.4%</span>
+                        </div>
+                        <div class="metric-value">96.8%</div>
+                        <div class="metric-footer"><span class="text-secondary">Weekly average accuracy metric</span></div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header">
+                            <span>Last Model Retraining</span>
+                            <span class="status-badge sb-info">COMPLETED</span>
+                        </div>
+                        <div class="metric-value" style="font-size: 1.8rem; margin: 0.5rem 0;">4 Days Ago</div>
+                        <div class="metric-footer"><span class="text-secondary">Triggered by weekly Flink cron</span></div>
+                    </div>
+                </section>
+
+                <!-- Analytics Charts -->
+                <section class="grid-1x1">
+                    <!-- Chart 1: Volume by Media Type -->
+                    <div class="glass-panel card" style="height: 380px;">
+                        <div class="panel-header">
+                            <h3>Ingestion Volumetrics by Media Format</h3>
+                            <span class="status-badge sb-info">Real-time Stream Aggregations</span>
+                        </div>
+                        <div class="panel-body" style="height: calc(100% - 2.5rem);">
+                            <canvas id="volumeChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Chart 2: Latency Percentiles -->
+                    <div class="glass-panel card" style="height: 380px;">
+                        <div class="panel-header">
+                            <h3>Inference Latency Percentiles (P50/P95/P99)</h3>
+                            <span class="status-badge sb-success">SLA Under 200ms Met</span>
+                        </div>
+                        <div class="panel-body" style="height: calc(100% - 2.5rem);">
+                            <canvas id="latencyChart"></canvas>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

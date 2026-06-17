@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TagSense AI — Dashboard</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/style.css">
+    <!-- Authentication Lock -->
+    <script>
+        if (sessionStorage.getItem("tagsense_token") !== "authenticated") {
+            window.location.href = "/login";
+        }
+    </script>
+    <!-- Theme Gating -->
+    <script>
+        if (localStorage.getItem("tagsense_theme") === "light") {
+            document.documentElement.classList.add("light-theme");
+        }
+    </script>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">TS</div>
+                <div class="brand-name">TagSense <span class="brand-tag">AI</span></div>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item active"><a href="/">Dashboard</a></li>
+                <li class="menu-item"><a href="/upload">Content Upload</a></li>
+                <li class="menu-item"><a href="/classification">Classification Center</a></li>
+                <li class="menu-item"><a href="/moderation">Moderation Center</a></li>
+                <li class="menu-item"><a href="/analytics">Analytics</a></li>
+                <li class="menu-item"><a href="/architecture">Architecture</a></li>
+                <li class="menu-item"><a href="/admin">Admin Console</a></li>
+                <li class="menu-item" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+                    <a href="#" onclick="sessionStorage.removeItem('tagsense_token'); window.location.href='/login';">Log Out</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>CPU Cluster</span>
+                        <span id="cpu-label-val">24%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpu-fill" style="width: 24%;"></div>
+                    </div>
+                </div>
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>GPU Cluster</span>
+                        <span>56%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 56%;"></div>
+                    </div>
+                </div>
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>Redis Quota</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Body -->
+        <div class="app-main">
+            <!-- Top Navbar -->
+            <nav class="navbar">
+                <div class="nav-left">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search content ID, tags, or status...">
+                    </div>
+                    <select class="tenant-selector">
+                        <option>Meta Global Edge</option>
+                        <option>YouTube Ingress Partner</option>
+                        <option>ITM University Admin</option>
+                    </select>
+                </div>
+                
+                <div class="nav-right">
+                    <div class="status-indicator">
+                        <div class="dot-pulse"></div>
+                        <span>Ingest active</span>
+                    </div>
+                    <button class="icon-button" id="theme-toggle" title="Toggle Light/Dark Theme">
+                        🌓
+                    </button>
+                    <button class="icon-button">
+                        🔔
+                        <span class="alert-dot"></span>
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar"></div>
+                        <span>Admin Console</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Page Content -->
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h2>System Overview</h2>
+                        <p>Real-time telemetry and ingest classification metrics.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="window.location.href='/upload'">New Ingest Job</button>
+                    </div>
+                </div>
+
+                <!-- Metrics Cards -->
+                <section class="metrics-grid">
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header">
+                            <span>Total Content Processed</span>
+                            <span class="trend-up">▲ 8.2%</span>
+                        </div>
+                        <div class="metric-value">1.5M</div>
+                        <div class="metric-footer">
+                            <span class="text-secondary">Accumulated system total</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header">
+                            <span>Classification Accuracy</span>
+                            <span class="trend-up">▲ 0.15%</span>
+                        </div>
+                        <div class="metric-value">98.2%</div>
+                        <div class="metric-footer">
+                            <span class="text-secondary">Weighted F1 score average</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header">
+                            <span>Inference Requests</span>
+                            <span class="trend-up">▲ 12.4%</span>
+                        </div>
+                        <div class="metric-value">25K/sec</div>
+                        <div class="metric-footer">
+                            <span class="text-secondary">Peak request throughput</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header">
+                            <span>Moderation Alerts</span>
+                            <span class="trend-down">▼ 14%</span>
+                        </div>
+                        <div class="metric-value">128</div>
+                        <div class="metric-footer">
+                            <span class="text-secondary">Unresolved policy alerts</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header">
+                            <span>Languages Supported</span>
+                            <span class="trend-neutral">● Active</span>
+                        </div>
+                        <div class="metric-value">120</div>
+                        <div class="metric-footer">
+                            <span class="text-secondary">NLP and translation layers</span>
+                        </div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header">
+                            <span>Active AI Models</span>
+                            <span class="trend-neutral">● Stable</span>
+                        </div>
+                        <div class="metric-value">18</div>
+                        <div class="metric-footer">
+                            <span class="text-secondary">Distributed model versions</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section: Line Chart & Pie Chart -->
+                <section class="grid-1x1">
+                    <!-- Real-time Cluster Workload (Line Chart) -->
+                    <div class="glass-panel card" style="height: 350px;">
+                        <div class="panel-header">
+                            <h3>Real-time Cluster Workload</h3>
+                            <span class="status-badge sb-info">GPU Auto-Scaling Active</span>
+                        </div>
+                        <div class="panel-body" style="height: calc(100% - 2.5rem);">
+                            <canvas id="dashboardLoadChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Content Category Distribution (Pie Chart) -->
+                    <div class="glass-panel card" style="height: 350px;">
+                        <div class="panel-header">
+                            <h3>Content Category Distribution</h3>
+                            <span class="status-badge sb-success">AI Predictions</span>
+                        </div>
+                        <div class="panel-body" style="height: calc(100% - 2.5rem); display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+                            <canvas id="categoryPieChart" style="max-height: 250px; max-width: 250px;"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Data & Feeds Section: Recent Classifications Table & Activity Feed -->
+                <section class="grid-2x1">
+                    <!-- Recent Classifications Table -->
+                    <div class="glass-panel card">
+                        <div class="panel-header">
+                            <h3>Recent Classifications Table</h3>
+                            <button class="btn btn-secondary" onclick="window.location.href='/classification'">Classification Log</button>
+                        </div>
+                        <div class="custom-table-container">
+                            <table class="custom-table">
+                                <thead>
+                                    <tr>
+                                        <th>Content ID</th>
+                                        <th>Format</th>
+                                        <th>Predicted Category</th>
+                                        <th>Confidence</th>
+                                        <th>Lang</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><code class="text-muted">3f5b8ae1-8b1c...</code></td>
+                                        <td><span class="format-badge fmt-text">TEXT</span></td>
+                                        <td><strong>Technology</strong></td>
+                                        <td>92%</td>
+                                        <td>EN</td>
+                                        <td><span class="status-badge sb-success">COMPLETED</span></td>
+                                        <td><span class="status-badge sb-success">PASSED</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="text-muted">2753a40b-f4fe...</code></td>
+                                        <td><span class="format-badge fmt-text">TEXT</span></td>
+                                        <td><strong>Sports</strong></td>
+                                        <td>89%</td>
+                                        <td>EN</td>
+                                        <td><span class="status-badge sb-success">COMPLETED</span></td>
+                                        <td><span class="status-badge sb-success">PASSED</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="text-muted">4e09805c-5bb7...</code></td>
+                                        <td><span class="format-badge fmt-text">TEXT</span></td>
+                                        <td><strong>Entertainment</strong></td>
+                                        <td>94%</td>
+                                        <td>EN</td>
+                                        <td><span class="status-badge sb-success">COMPLETED</span></td>
+                                        <td><span class="status-badge sb-danger">REMOVED</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="text-muted">bc9281a4-92d1...</code></td>
+                                        <td><span class="format-badge fmt-video">VIDEO</span></td>
+                                        <td><strong>Politics</strong></td>
+                                        <td>81%</td>
+                                        <td>ES</td>
+                                        <td><span class="status-badge sb-warning">AUDITING</span></td>
+                                        <td><span class="status-badge sb-warning">REVIEW_REQ</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><code class="text-muted">de893112-9ab8...</code></td>
+                                        <td><span class="format-badge fmt-audio">AUDIO</span></td>
+                                        <td><strong>Health</strong></td>
+                                        <td>94%</td>
+                                        <td>EN</td>
+                                        <td><span class="status-badge sb-success">COMPLETED</span></td>
+                                        <td><span class="status-badge sb-success">PASSED</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Activity Feed -->
+                    <div class="glass-panel card" style="display: flex; flex-direction: column;">
+                        <div class="panel-header">
+                            <h3>Activity Feed</h3>
+                            <button class="btn btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.72rem;" onclick="window.location.href='/moderation'">View Alerts</button>
+                        </div>
+                        <div class="panel-body alert-list" style="overflow-y: auto; flex-grow: 1; max-height: 290px;">
+                            <div class="alert-item critical">
+                                <div>
+                                    <div class="alert-title">Critical Policy Match</div>
+                                    <div class="alert-meta">ID: 4e09805c | Content Auto-Removed</div>
+                                </div>
+                                <span class="alert-timestamp">12:30</span>
+                            </div>
+                            <div class="alert-item warning">
+                                <div>
+                                    <div class="alert-title">Auditor Review Action</div>
+                                    <div class="alert-meta">ID: ae883921 escalated to moderation queue</div>
+                                </div>
+                                <span class="alert-timestamp">12:28</span>
+                            </div>
+                            <div class="alert-item success">
+                                <div>
+                                    <div class="alert-title">Database Index Optimized</div>
+                                    <div class="alert-meta">PostgreSQL sharding health checked and stable</div>
+                                </div>
+                                <span class="alert-timestamp">12:20</span>
+                            </div>
+                            <div class="alert-item info">
+                                <div>
+                                    <div class="alert-title">Active AI Models Sync</div>
+                                    <div class="alert-meta">All 18 production model parameters verified</div>
+                                </div>
+                                <span class="alert-timestamp">12:15</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

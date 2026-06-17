@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TagSense AI — Admin Console</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* CSS Toggle Switch Styles */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 22px;
+        }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider-toggle {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            transition: .3s;
+            border-radius: 22px;
+        }
+        .slider-toggle:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-secondary);
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider-toggle {
+            background-color: var(--accent-indigo);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        input:checked + .slider-toggle:before {
+            transform: translateX(22px);
+            background-color: white;
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.6);
+        }
+        
+        .admin-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        @media (max-width: 1024px) {
+            .admin-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .config-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .config-row:last-child {
+            border-bottom: none;
+        }
+        
+        .range-box {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .range-box input[type="range"] {
+            flex-grow: 1;
+            accent-color: var(--accent-indigo);
+            cursor: pointer;
+        }
+        .range-val {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--accent-indigo);
+            min-width: 45px;
+            text-align: right;
+        }
+        
+        .number-input-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+        .number-box {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+        .number-box label {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+        }
+        .number-box input {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            padding: 0.4rem 0.6rem;
+            outline: none;
+        }
+        .number-box input:focus {
+            border-color: var(--accent-indigo);
+        }
+    </style>
+    <!-- Authentication Lock -->
+    <script>
+        if (sessionStorage.getItem("tagsense_token") !== "authenticated") {
+            window.location.href = "/login";
+        }
+    </script>
+    <!-- Theme Gating -->
+    <script>
+        if (localStorage.getItem("tagsense_theme") === "light") {
+            document.documentElement.classList.add("light-theme");
+        }
+    </script>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">TS</div>
+                <div class="brand-name">TagSense <span class="brand-tag">AI</span></div>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item"><a href="/">Dashboard</a></li>
+                <li class="menu-item"><a href="/upload">Content Upload</a></li>
+                <li class="menu-item"><a href="/classification">Classification Center</a></li>
+                <li class="menu-item"><a href="/moderation">Moderation Center</a></li>
+                <li class="menu-item"><a href="/analytics">Analytics</a></li>
+                <li class="menu-item"><a href="/architecture">Architecture</a></li>
+                <li class="menu-item active"><a href="/admin">Admin Console</a></li>
+                <li class="menu-item" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+                    <a href="#" onclick="sessionStorage.removeItem('tagsense_token'); window.location.href='/login';">Log Out</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>CPU Cluster</span>
+                        <span id="cpu-label-val">24%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpu-fill" style="width: 24%;"></div>
+                    </div>
+                </div>
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>GPU Cluster</span>
+                        <span>56%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 56%;"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Body -->
+        <div class="app-main">
+            <!-- Top Navbar -->
+            <nav class="navbar">
+                <div class="nav-left">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search content ID, tags, or status...">
+                    </div>
+                    <select class="tenant-selector">
+                        <option>Meta Global Edge</option>
+                        <option>YouTube Ingress Partner</option>
+                        <option>ITM University Admin</option>
+                    </select>
+                </div>
+                
+                <div class="nav-right">
+                    <div class="status-indicator">
+                        <div class="dot-pulse"></div>
+                        <span>Ingest active</span>
+                    </div>
+                    <button class="icon-button" id="theme-toggle" title="Toggle Light/Dark Theme">
+                        🌓
+                    </button>
+                    <button class="icon-button">
+                        🔔
+                        <span class="alert-dot"></span>
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar"></div>
+                        <span>Admin Console</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Page Content -->
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h2>Enterprise Admin Console</h2>
+                        <p>Configure pipeline gating, scale model replica limits, and adjust policy flags.</p>
+                    </div>
+                </div>
+
+                <!-- Admin Grid config forms -->
+                <form id="admin-config-form" class="admin-grid">
+                    <!-- Card 1: Model Pipelines Configuration -->
+                    <div class="glass-panel card" style="padding: 1.5rem;">
+                        <div class="panel-header" style="margin-bottom: 0.8rem; padding-bottom: 0.6rem;">
+                            <h3>AI Ingress Inference Pipelines</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="config-row">
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-title);">BERT Classification Classifier</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-secondary);">Predict primary document taxonomy.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-bert" checked>
+                                    <span class="slider-toggle"></span>
+                                </label>
+                            </div>
+                            <div class="config-row">
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-title);">spaCy Named Entity Extractor</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-secondary);">Index locations, organizations, and brand terms.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-spacy" checked>
+                                    <span class="slider-toggle"></span>
+                                </label>
+                            </div>
+                            <div class="config-row">
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-title);">Content Toxicity Scanner</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-secondary);">Enforce basic blocklist filter scans.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-tox" checked>
+                                    <span class="slider-toggle"></span>
+                                </label>
+                            </div>
+                            <div class="config-row">
+                                <div>
+                                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-title);">Concept Drift Evaluation</div>
+                                    <div style="font-size: 0.72rem; color: var(--text-secondary);">Assess weekly accuracy similarity metrics.</div>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="toggle-drift">
+                                    <span class="slider-toggle"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Ingestion & Cluster Capacity Scale -->
+                    <div class="glass-panel card" style="padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <div class="panel-header" style="margin-bottom: 0.8rem; padding-bottom: 0.6rem;">
+                                <h3>Ingestion Gating & Cluster Bounds</h3>
+                            </div>
+                            <div class="panel-body" style="display: flex; flex-direction: column; gap: 1rem;">
+                                <!-- Range 1 -->
+                                <div>
+                                    <label class="meta-label" style="margin-bottom: 0;">Min Classification Confidence</label>
+                                    <div class="range-box">
+                                        <input type="range" id="min-conf" min="70" max="99" value="85" oninput="document.getElementById('val-conf').innerText = this.value + '%'">
+                                        <span class="range-val" id="val-conf">85%</span>
+                                    </div>
+                                </div>
+                                <!-- Range 2 -->
+                                <div>
+                                    <label class="meta-label" style="margin-bottom: 0;">Toxicity Alarm Limit</label>
+                                    <div class="range-box">
+                                        <input type="range" id="tox-limit" min="10" max="90" value="45" oninput="document.getElementById('val-tox').innerText = (this.value / 100).toFixed(2)">
+                                        <span class="range-val" id="val-tox">0.45</span>
+                                    </div>
+                                </div>
+                                <!-- Cluster bounds inputs -->
+                                <div>
+                                    <label class="meta-label">Kubernetes Autoscaling Pod Limits</label>
+                                    <div class="number-input-grid">
+                                        <div class="number-box">
+                                            <label for="replicas-min">Min Pods</label>
+                                            <input type="number" id="replicas-min" value="2" min="1" max="10">
+                                        </div>
+                                        <div class="number-box">
+                                            <label for="replicas-max">Max Pods</label>
+                                            <input type="number" id="replicas-max" value="50" min="10" max="200">
+                                        </div>
+                                        <div class="number-box">
+                                            <label for="cpu-trigger">CPU Trigger</label>
+                                            <input type="number" id="cpu-trigger" value="75" min="50" max="95">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="margin-top: 1.5rem; width: 100%; padding: 0.6rem 1rem;">
+                            Commit Configurations
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Logger Console panel -->
+                <section class="glass-panel card" style="padding: 0;">
+                    <div class="console-container">
+                        <div class="console-title">
+                            <div class="console-controls">
+                                <span class="dot dot-red"></span>
+                                <span class="dot dot-yellow"></span>
+                                <span class="dot dot-green"></span>
+                            </div>
+                            <span>Cluster Configurations Ingress Auditor Console</span>
+                            <button class="btn-clear" onclick="clearConsoleLogs()">Clear Console</button>
+                        </div>
+                        <div class="console-body" id="console-body">
+                            <div class="console-line muted">[System] Configuration listener online. Ingress parameters mapping loaded.</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

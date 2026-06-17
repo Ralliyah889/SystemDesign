@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TagSense AI — Moderation Center</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <!-- Authentication Lock -->
+    <script>
+        if (sessionStorage.getItem("tagsense_token") !== "authenticated") {
+            window.location.href = "/login";
+        }
+    </script>
+    <!-- Theme Gating -->
+    <script>
+        if (localStorage.getItem("tagsense_theme") === "light") {
+            document.documentElement.classList.add("light-theme");
+        }
+    </script>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">TS</div>
+                <div class="brand-name">TagSense <span class="brand-tag">AI</span></div>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item"><a href="/">Dashboard</a></li>
+                <li class="menu-item"><a href="/upload">Content Upload</a></li>
+                <li class="menu-item"><a href="/classification">Classification Center</a></li>
+                <li class="menu-item active"><a href="/moderation">Moderation Center</a></li>
+                <li class="menu-item"><a href="/analytics">Analytics</a></li>
+                <li class="menu-item"><a href="/architecture">Architecture</a></li>
+                <li class="menu-item"><a href="/admin">Admin Console</a></li>
+                <li class="menu-item" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+                    <a href="#" onclick="sessionStorage.removeItem('tagsense_token'); window.location.href='/login';">Log Out</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>CPU Cluster</span>
+                        <span id="cpu-label-val">24%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpu-fill" style="width: 24%;"></div>
+                    </div>
+                </div>
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>GPU Cluster</span>
+                        <span>56%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 56%;"></div>
+                    </div>
+                </div>
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>Redis Quota</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Body -->
+        <div class="app-main">
+            <!-- Top Navbar -->
+            <nav class="navbar">
+                <div class="nav-left">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search content ID, tags, or status...">
+                    </div>
+                    <select class="tenant-selector">
+                        <option>Meta Global Edge</option>
+                        <option>YouTube Ingress Partner</option>
+                        <option>ITM University Admin</option>
+                    </select>
+                </div>
+                
+                <div class="nav-right">
+                    <div class="status-indicator">
+                        <div class="dot-pulse"></div>
+                        <span>Ingest active</span>
+                    </div>
+                    <button class="icon-button" id="theme-toggle" title="Toggle Light/Dark Theme">
+                        🌓
+                    </button>
+                    <button class="icon-button">
+                        🔔
+                        <span class="alert-dot"></span>
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar"></div>
+                        <span>Admin Console</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Page Content -->
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h2>Moderation Center</h2>
+                        <p>Manage policy compliance parameters, safety flags, and manually evaluate low-confidence escalations.</p>
+                    </div>
+                </div>
+
+                <!-- Moderation Metrics -->
+                <section class="metrics-grid">
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header"><span>Pending Review Queue</span></div>
+                        <div class="metric-value text-red" id="metric-queue-size">4</div>
+                        <div class="metric-footer"><span class="text-secondary">Low confidence prediction flags</span></div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header"><span>Blocked Content (24h)</span></div>
+                        <div class="metric-value">4,102</div>
+                        <div class="metric-footer"><span class="text-secondary">Auto-moderated removals</span></div>
+                    </div>
+                    <div class="glass-panel metric-card">
+                        <div class="metric-header"><span>False Positive Ratio</span></div>
+                        <div class="metric-value text-blue">0.02%</div>
+                        <div class="metric-footer"><span class="text-secondary">Reviewer override rate</span></div>
+                    </div>
+                </section>
+
+                <!-- Human Review Queue Split Layout -->
+                <section class="grid-2x1">
+                    <!-- Left: Table card -->
+                    <div class="glass-panel card" style="display: flex; flex-direction: column;">
+                        <div class="panel-header">
+                            <h3>Escalation Review Queue</h3>
+                            <span class="status-badge sb-warning">Pending: <span id="queue-count-badge">3</span></span>
+                        </div>
+                        <div class="custom-table-container">
+                            <table class="custom-table" id="moderation-queue-table">
+                                <thead>
+                                    <tr>
+                                        <th>Content ID</th>
+                                        <th>Format</th>
+                                        <th>Flag Reason</th>
+                                        <th>Toxicity</th>
+                                        <th>Severity</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="clickable-row" data-id="bc9281a4" data-format="VIDEO" data-reason="Hate Speech / Violence" data-score="0.85" data-severity="CRITICAL" data-text="I hate this group of scum people. They are trash and should be killed. We must bomb their offices and attack them." style="cursor: pointer;">
+                                        <td><code class="text-secondary">bc9281a4</code></td>
+                                        <td><span class="format-badge fmt-video">VIDEO</span></td>
+                                        <td>Hate / Violence</td>
+                                        <td>0.85</td>
+                                        <td><span class="status-badge sb-danger">CRITICAL</span></td>
+                                        <td><span class="status-badge sb-warning" id="status-bc9281a4">PENDING</span></td>
+                                    </tr>
+                                    <tr class="clickable-row" data-id="ae883921" data-format="IMAGE" data-reason="Spam / Financial Outlier" data-score="0.72" data-severity="HIGH" data-text="Earn easy cash fast! Click here to download our free gift card! Double your money overnight in our online casino slot machines! Use promo code Slots." style="cursor: pointer;">
+                                        <td><code class="text-secondary">ae883921</code></td>
+                                        <td><span class="format-badge fmt-image">IMAGE</span></td>
+                                        <td>Spam Offer</td>
+                                        <td>0.72</td>
+                                        <td><span class="status-badge sb-warning">HIGH</span></td>
+                                        <td><span class="status-badge sb-warning" id="status-ae883921">PENDING</span></td>
+                                    </tr>
+                                    <tr class="clickable-row" data-id="de893112" data-format="AUDIO" data-reason="False Positive Check" data-score="0.14" data-severity="LOW" data-text="The supreme court justices ruled the policy legislation unconstitutional in a major swing vote. No safety threat detected." style="cursor: pointer;">
+                                        <td><code class="text-secondary">de893112</code></td>
+                                        <td><span class="format-badge fmt-audio">AUDIO</span></td>
+                                        <td>Relational Match</td>
+                                        <td>0.14</td>
+                                        <td><span class="status-badge sb-success">LOW</span></td>
+                                        <td><span class="status-badge sb-warning" id="status-de893112">PENDING</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right: Content Analyst Viewport -->
+                    <div class="glass-panel card" id="analyst-viewport" style="display: flex; flex-direction: column; justify-content: space-between; min-height: 380px;">
+                        <div class="panel-header">
+                            <h3>Content Analyst Viewport</h3>
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div class="results-placeholder" id="analyst-placeholder" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                            <div class="radar"></div>
+                            <p>Select a pending log row from the queue to start audit analysis...</p>
+                        </div>
+                        
+                        <!-- Active Viewport State -->
+                        <div class="results-content hidden" id="analyst-content" style="flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem;">
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <div>
+                                        <span class="meta-label">Auditing ID</span>
+                                        <div style="font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; color: var(--text-title);" id="audit-id">--</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <span class="meta-label">Format</span>
+                                        <div id="audit-format-badge">--</div>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-bottom: 0.8rem; background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.85rem; font-size: 0.85rem; line-height: 1.45; color: var(--text-primary);" id="audit-text-container">
+                                    <!-- Full text -->
+                                </div>
+
+                                <div class="moderation-card" id="audit-metrics-card" style="margin-top: 0.5rem;">
+                                    <div class="mod-details-grid" style="grid-template-columns: repeat(2, 1fr);">
+                                        <div>
+                                            <span class="meta-label">Toxicity Score</span>
+                                            <div style="font-size: 1.15rem; font-weight: 700; color: var(--danger);" id="audit-score-val">0.00</div>
+                                        </div>
+                                        <div>
+                                            <span class="meta-label">Suggested Action</span>
+                                            <div style="font-size: 1.15rem; font-weight: 700; color: var(--warning);" id="audit-action-val">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 0.8rem; margin-top: 1rem;">
+                                <button class="btn btn-primary" id="btn-audit-approve" style="flex: 1;" onclick="submitAnalystAudit(true)">Approve Ingress</button>
+                                <button class="btn btn-secondary" id="btn-audit-reject" style="flex: 1; background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2);" onclick="submitAnalystAudit(false)">Reject Ingress</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- Flagged Keyword Database Panel -->
+                <section class="glass-panel card">
+                    <div class="panel-header">
+                        <h3>Flagged Policy Keyword Database</h3>
+                        <span class="status-badge sb-info">Active Filter Keywords: 30+</span>
+                    </div>
+                    <div class="panel-body">
+                        <p class="section-desc">TagSense runs string pattern evaluations against this database at ingestion boundaries to calculate safety flags before pipeline models compile transcripts.</p>
+                        
+                        <div class="tags-container" style="gap: 0.6rem;">
+                            <!-- Safety database entries -->
+                            <span class="tag-item" style="color: var(--danger); border-color: rgba(239,68,68,0.3);">kill</span>
+                            <span class="tag-item" style="color: var(--danger); border-color: rgba(239,68,68,0.3);">murder</span>
+                            <span class="tag-item" style="color: var(--danger); border-color: rgba(239,68,68,0.3);">shoot</span>
+                            <span class="tag-item" style="color: var(--danger); border-color: rgba(239,68,68,0.3);">bomb</span>
+                            <span class="tag-item" style="color: var(--danger); border-color: rgba(239,68,68,0.3);">terrorist</span>
+                            <span class="tag-item" style="color: var(--danger); border-color: rgba(239,68,68,0.3);">attack</span>
+                            <span class="tag-item" style="color: var(--danger); border-color: rgba(239,68,68,0.3);">suicide</span>
+                            <span class="tag-item" style="color: var(--warning); border-color: rgba(245,158,11,0.3);">hate</span>
+                            <span class="tag-item" style="color: var(--warning); border-color: rgba(245,158,11,0.3);">scum</span>
+                            <span class="tag-item" style="color: var(--warning); border-color: rgba(245,158,11,0.3);">trash</span>
+                            <span class="tag-item" style="color: var(--warning); border-color: rgba(245,158,11,0.3);">racist</span>
+                            <span class="tag-item" style="color: var(--warning); border-color: rgba(245,158,11,0.3);">bigot</span>
+                            <span class="tag-item" style="color: var(--info); border-color: rgba(6,182,212,0.3);">cheap followers</span>
+                            <span class="tag-item" style="color: var(--info); border-color: rgba(6,182,212,0.3);">click here</span>
+                            <span class="tag-item" style="color: var(--info); border-color: rgba(6,182,212,0.3);">free gift</span>
+                            <span class="tag-item" style="color: var(--info); border-color: rgba(6,182,212,0.3);">earn money</span>
+                            <span class="tag-item" style="color: var(--info); border-color: rgba(6,182,212,0.3);">viagra</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Logger Console panel -->
+                <section class="glass-panel card" style="padding: 0;">
+                    <div class="console-container">
+                        <div class="console-title">
+                            <div class="console-controls">
+                                <span class="dot dot-red"></span>
+                                <span class="dot dot-yellow"></span>
+                                <span class="dot dot-green"></span>
+                            </div>
+                            <span>Moderation Actions Auditor Logger Console</span>
+                            <button class="btn-clear" onclick="clearConsoleLogs()">Clear Console</button>
+                        </div>
+                        <div class="console-body" id="console-body">
+                            <div class="console-line muted">[System] Escalation review queues loaded. Awaiting administrator inputs.</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>

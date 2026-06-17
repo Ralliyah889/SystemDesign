@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TagSense AI — Architecture</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Mermaid JS for dynamic diagram rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'dark',
+            flowchart: { useMaxWidth: true, htmlLabels: true }
+        });
+    </script>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .arch-desc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        .arch-card {
+            padding: 1.25rem;
+        }
+        .arch-card h4 {
+            font-size: 0.95rem;
+            color: var(--accent-indigo);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .num-badge {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-indigo);
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+        .arch-card p {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+        .diagram-container {
+            background: #05070e;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+    </style>
+    <!-- Authentication Lock -->
+    <script>
+        if (sessionStorage.getItem("tagsense_token") !== "authenticated") {
+            window.location.href = "/login";
+        }
+    </script>
+    <!-- Theme Gating -->
+    <script>
+        if (localStorage.getItem("tagsense_theme") === "light") {
+            document.documentElement.classList.add("light-theme");
+        }
+    </script>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-icon">TS</div>
+                <div class="brand-name">TagSense <span class="brand-tag">AI</span></div>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item"><a href="/">Dashboard</a></li>
+                <li class="menu-item"><a href="/upload">Content Upload</a></li>
+                <li class="menu-item"><a href="/classification">Classification Center</a></li>
+                <li class="menu-item"><a href="/moderation">Moderation Center</a></li>
+                <li class="menu-item"><a href="/analytics">Analytics</a></li>
+                <li class="menu-item active"><a href="/architecture">Architecture</a></li>
+                <li class="menu-item"><a href="/admin">Admin Console</a></li>
+                <li class="menu-item" style="margin-top: auto; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+                    <a href="#" onclick="sessionStorage.removeItem('tagsense_token'); window.location.href='/login';">Log Out</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>CPU Cluster</span>
+                        <span id="cpu-label-val">24%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cpu-fill" style="width: 24%;"></div>
+                    </div>
+                </div>
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>GPU Cluster</span>
+                        <span>56%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 56%;"></div>
+                    </div>
+                </div>
+                <div class="resource-usage">
+                    <div class="resource-label">
+                        <span>Redis Quota</span>
+                        <span>85%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Body -->
+        <div class="app-main">
+            <!-- Top Navbar -->
+            <nav class="navbar">
+                <div class="nav-left">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search content ID, tags, or status...">
+                    </div>
+                    <select class="tenant-selector">
+                        <option>Meta Global Edge</option>
+                        <option>YouTube Ingress Partner</option>
+                        <option>ITM University Admin</option>
+                    </select>
+                </div>
+                
+                <div class="nav-right">
+                    <div class="status-indicator">
+                        <div class="dot-pulse"></div>
+                        <span>Ingest active</span>
+                    </div>
+                    <button class="icon-button" id="theme-toggle" title="Toggle Light/Dark Theme">
+                        🌓
+                    </button>
+                    <button class="icon-button">
+                        🔔
+                        <span class="alert-dot"></span>
+                    </button>
+                    <div class="user-profile">
+                        <div class="avatar"></div>
+                        <span>Admin Console</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Page Content -->
+            <div class="page-container">
+                <div class="page-header">
+                    <div>
+                        <h2>System Architecture Model</h2>
+                        <p>High-level visual topology and components breakdown of the TagSense AI processing engine.</p>
+                    </div>
+                </div>
+
+                <!-- Interactive Diagram Panel -->
+                <section class="glass-panel card">
+                    <div class="panel-header">
+                        <h3>Interactive Topology Map</h3>
+                        <span class="status-badge sb-info">Mermaid Compiler Active</span>
+                    </div>
+                    <div class="diagram-container">
+                        <div class="mermaid">
+                            flowchart TD
+                                %% Define styles for professional appearance
+                                classDef client fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#e0e7ff;
+                                classDef ingest fill:#0f172a,stroke:#3b82f6,stroke-width:2px,color:#cbd5e1;
+                                classDef database fill:#0f172a,stroke:#10b981,stroke-width:2px,color:#cbd5e1;
+                                classDef monitor fill:#0f172a,stroke:#f59e0b,stroke-width:2px,color:#cbd5e1;
+                                classDef app fill:#0f172a,stroke:#8b5cf6,stroke-width:2px,color:#cbd5e1;
+
+                                subgraph Upload_Ingress ["1. Ingress Tier"]
+                                    C1["1. Content Upload Layer"] -->|HTTPS / API Stream| I2["2. Content Ingestion Layer"]
+                                    I2 -->|Publish Message| K3["3. Kafka Event Streaming"]
+                                end
+
+                                subgraph AI_Processing ["2. Distributed AI Processing Pipeline"]
+                                    K3 -->|Ingest Stream| P4["4. Data Preprocessing"]
+                                    P4 -->|Preprocessed Tokens| N5["5. NLP Processing"]
+                                    N5 -->|Extracted Entities| M6["6. Machine Learning Classification"]
+                                    M6 -->|Labels & Confidence| E7["7. Moderation Engine"]
+                                end
+
+                                subgraph Storage_Search ["3. Storage & Indexing"]
+                                    E7 -->|Structured Records| D8[("8. Metadata Database")]
+                                    E7 -->|Token Inverted Index| S9[("9. ElasticSearch Index")]
+                                end
+
+                                subgraph Telemetry_Feedback ["4. Observability Framework"]
+                                    E7 -->|Pipeline Latency & Signals| A10["10. Analytics Engine"]
+                                    A10 -->|Metric Aggregations| O11["11. Monitoring System"]
+                                end
+
+                                subgraph User_Console ["5. Operator Console"]
+                                    D8 -->|DB Queries| DB12["12. Dashboard"]
+                                    O11 -->|Telemetry Stream| DB12
+                                end
+
+                                class C1,DB12 client;
+                                class I2,K3 ingest;
+                                class P4,N5,M6,E7 app;
+                                class D8,S9 database;
+                                class A10,O11 monitor;
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Components breakdown -->
+                <section class="glass-panel card">
+                    <div class="panel-header">
+                        <h3>Component Breakdown Specifications</h3>
+                    </div>
+                    <div class="arch-desc-grid">
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">1</span> Content Upload Layer</h4>
+                            <p>User-facing ingress points, including the web portal dashboard, mobile uploads, and direct partner client APIs.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">2</span> Content Ingestion Layer</h4>
+                            <p>Edge gateway service that handles traffic validation, size limits checks, malware scanning, and ingestion handshakes.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">3</span> Kafka Event Streaming</h4>
+                            <p>Distributed message queue that buffers and partitions incoming payloads into topics (Text, Image, Video) to decouple ingestion from inference tasks.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">4</span> Data Preprocessing</h4>
+                            <p>Dedicated processing workers that strip HTML tags, detect language, tokenize text inputs, lemmatize terms, and extract raw tokens.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">5</span> NLP Processing</h4>
+                            <p>Employs spaCy parser threads to analyze grammar structures and identify key named entities (Persons, Organizations, Locations).</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">6</span> Machine Learning Classification</h4>
+                            <p>TF-IDF vectorizer pipelines and Logistic Regression model nodes that run model inference to predict document categories.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">7</span> Moderation Engine</h4>
+                            <p>Assesses output labels and scans content using blocklists to categorize violation severity (Low, Medium, High, Critical) and recommend policy actions.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">8</span> Metadata Database</h4>
+                            <p>High-availability PostgreSQL database sharded by content_id to store structured classification records, transaction metrics, and human audit logs.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">9</span> ElasticSearch Index</h4>
+                            <p>Stores inverted indices of processed documents and tags to support full-text keyword searches across the platform.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">10</span> Analytics Engine</h4>
+                            <p>Stream processing framework (Apache Flink) that calculates running aggregates of volume statistics, P99 latencies, and classification model drift.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">11</span> Monitoring System</h4>
+                            <p>Structured observability stack (Prometheus & Grafana) that collects system health alerts, Kubernetes cluster load, and memory queues status.</p>
+                        </div>
+                        <div class="glass-panel arch-card">
+                            <h4><span class="num-badge">12</span> Dashboard</h4>
+                            <p>Unified glassmorphism administrator portal displaying live ingestion pipelines, analytics charts, alerts feeds, and human-in-the-loop audit actions.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
