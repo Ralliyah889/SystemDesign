@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  web:
+    image: ghcr.io/${GHCR_IMAGE:-tagsense-app:latest}
+    ports:
+      - "8000:8000"
+    restart: always
