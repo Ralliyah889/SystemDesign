@@ -72,8 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
         initModerationPage();
     } else if (path.includes("analytics") || path.endsWith("/analytics")) {
         initAnalyticsPage();
-    } else if (path.includes("architecture") || path.endsWith("/architecture")) {
-        // Architecture initialization
+
     } else if (path.includes("admin") || path.endsWith("/admin")) {
         initAdminPage();
     } else {

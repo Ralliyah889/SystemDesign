@@ -96,9 +96,7 @@ async def read_moderation():
 async def read_analytics():
     return FileResponse(os.path.join(static_dir, "analytics.html"))
 
-@app.get("/architecture")
-async def read_architecture():
-    return FileResponse(os.path.join(static_dir, "architecture.html"))
+
 
 # Static assets shortcuts to support ROOT links in HTML files
 @app.get("/style.css")
